@@ -95,9 +95,10 @@ def main():
             filetype: FileType = ext[1:].lower()  # type: ignore
 
             if filetype == 'qrc' and qtlib == 'pyqt6': parser.error('Resources (.qrc) are not supported in PyQt6')
+            suffix = '_rc' if filetype == 'qrc' else ''
 
             subprocess.run(
-                [get_compiler(filetype, qtlib), str(file), '-o', root + '.py'],
+                [get_compiler(filetype, qtlib), str(file), '-o', root + suffix + '.py'],
                 check=True, text=True
             )
 
