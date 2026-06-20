@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qturcompiler"
+version = "0.1.0"
+description = "A universal compiler for Qt UI and resource files (.ui, .qrc) to Python modules"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "MagIlyasDOMA", email = "magilyas.doma.09@list.ru"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Code Generators",
+]
+keywords = ["qt", "compiler", "uic", "rcc", "pyside", "pyqt"]
+dependencies = []
+
+[project.scripts]
+qtup = "qturcompiler:main"
+
+[project.urls]
+Homepage = "https://github.com/MagIlyasDOMA/qturcompiler"
+
+[tool.setuptools]
+py-modules = ["qturcompiler"]
