@@ -2,8 +2,10 @@ import argparse
 import subprocess
 from os.path import splitext
 from importlib.metadata import metadata as get_package_metadata, PackageNotFoundError
-from typing import Literal, get_args
+from typing import Literal, get_args, List
 from pathlib import Path
+
+__version__ = '0.2.0'
 
 QtLibraries = Literal['pyside6', 'pyqt6', 'pyqt5', 'pyside2']
 FileType = Literal['ui', 'qrc']
@@ -53,6 +55,13 @@ def qtur_file(value) -> Path:
     return value
 
 
+def get_all_files(recursive: bool, exclude_qrc: bool) -> List[Path]:
+    cwd = Path.cwd()
+    func = cwd.rglob if recursive else cwd.glob
+    ui_files = list(func('*.ui'))
+    return ui_files + list(func('*.qrc')) if not exclude_qrc else ui_files
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Compile Qt UI (.ui) and resource (.qrc) files into Python modules.",
@@ -72,10 +81,13 @@ def main():
     libs_group.add_argument('--pyside2', action='store_const', const='pyside2', dest='qtlib',
                             help='Use PySide2')
 
+    parser.add_argument('--recursive', '--recurse', '-r', action='store_true', dest='recursive', help='Compile all Qt files recursively')
+    parser.add_argument('--version', '-v', action='version', version=__version__)
+
     try:
         args = parser.parse_args()
         qtlib = args.qtlib or get_qt_lib()
-        files = args.files
+        files = args.files or get_all_files(args.recursive, qtlib == 'pyqt6')
 
         for file in files:
             file: Path
