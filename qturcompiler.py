@@ -1,11 +1,12 @@
 import argparse
+import os
 import subprocess
 from os.path import splitext
 from importlib.metadata import metadata as get_package_metadata, PackageNotFoundError
 from typing import Literal, get_args, List
 from pathlib import Path
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 QtLibraries = Literal['pyside6', 'pyqt6', 'pyqt5', 'pyside2']
 FileType = Literal['ui', 'qrc']
@@ -62,7 +63,14 @@ def get_all_files(recursive: bool, exclude_qrc: bool) -> List[Path]:
     return ui_files + list(func('*.qrc')) if not exclude_qrc else ui_files
 
 
+def set_working_directory(cwd: Path):
+    if cwd == Path.cwd(): return
+    if cwd.is_dir(): os.chdir(cwd)
+    else: raise FileNotFoundError(cwd)
+
+
 def main():
+    old_dir = os.getcwd()
     parser = argparse.ArgumentParser(
         description="Compile Qt UI (.ui) and resource (.qrc) files into Python modules.",
         epilog="If no Qt library is specified, the first installed one from the list "
@@ -83,9 +91,12 @@ def main():
 
     parser.add_argument('--recursive', '--recurse', '-r', action='store_true', dest='recursive', help='Compile all Qt files recursively')
     parser.add_argument('--version', '-v', action='version', version=__version__)
+    parser.add_argument('--cwd', '-d', default=Path.cwd(), type=Path, help='path to working directory')
 
     try:
         args = parser.parse_args()
+        set_working_directory(args.cwd)
+
         qtlib = args.qtlib or get_qt_lib()
         files = args.files or get_all_files(args.recursive, qtlib == 'pyqt6')
 
@@ -101,11 +112,11 @@ def main():
                 [get_compiler(filetype, qtlib), str(file), '-o', root + suffix + '.py'],
                 check=True, text=True
             )
-
     except Exception as error:
         error_module = error.__class__.__module__
         error_module = '' if error_module == '__main__' else error_module + '.'
         parser.error(f"{error_module}{error.__class__.__name__}: {error}")
+    finally: os.chdir(old_dir)
 
 
 if __name__ == '__main__': main()
